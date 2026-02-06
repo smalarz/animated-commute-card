@@ -1,0 +1,71 @@
+# ============================================
+# Animated Commute Card - Przykładowa konfiguracja
+# ============================================
+
+# INSTALACJA:
+# 1. Skopiuj animated-commute-card.js do /config/www/
+# 2. Dodaj zasób w Settings → Dashboards → Resources:
+#    URL: /local/animated-commute-card.js
+#    Type: JavaScript Module
+# 3. Odśwież przeglądarkę (Ctrl+Shift+R)
+
+# ============================================
+# PODSTAWOWA KONFIGURACJA
+# ============================================
+
+type: custom:animated-commute-card
+entity_to_work: sensor.do_pracy
+entity_to_home: sensor.z_pracy_do_domu
+
+# ============================================
+# PEŁNA KONFIGURACJA
+# ============================================
+
+# type: custom:animated-commute-card
+# entity_to_work: sensor.do_pracy
+# entity_to_home: sensor.z_pracy_do_domu
+# name: "🚗 DOJAZDY"
+# show_animations: true
+# show_traffic_indicator: true
+# optimal_threshold: 25      # poniżej = zielone światło
+# warning_threshold: 45      # poniżej = żółte światło
+# danger_threshold: 60       # powyżej = czerwone światło + pulsujący czas
+
+# ============================================
+# TYLKO DOJAZD DO PRACY
+# ============================================
+
+# type: custom:animated-commute-card
+# entity_to_work: sensor.do_pracy
+# name: "Do pracy"
+
+# ============================================
+# Z CARD_MOD (customowe style)
+# ============================================
+
+# type: custom:animated-commute-card
+# entity_to_work: sensor.do_pracy
+# entity_to_home: sensor.z_pracy_do_domu
+# card_mod:
+#   style: |
+#     :host {
+#       --acc-time-size: 56px;
+#       --acc-radius: 24px;
+#       --acc-optimal: #22c55e;
+#       --acc-warning: #eab308;
+#       --acc-danger: #dc2626;
+#     }
+
+# ============================================
+# FEATURES:
+# ============================================
+# ✅ Dynamiczne tło (rano/dzień/wieczór/noc) na podstawie sun.sun
+# ✅ Animowana droga z jadącymi samochodami
+# ✅ Pływające chmury (dzień) / migające gwiazdy (noc)
+# ✅ Sygnalizator świetlny (zielony/żółty/czerwony)
+# ✅ Kolorowanie czasu (zielony/żółty/czerwony + pulsowanie)
+# ✅ ⚠️ przy czasie > 59 min
+# ✅ Wskaźnik ruchu (mały/umiarkowany/duży/bardzo duży)
+# ✅ Internacjonalizacja (PL/EN/DE)
+# ✅ Visual Editor w HA
+# ✅ HACS compatible
