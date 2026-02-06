@@ -2,91 +2,76 @@
  * Animated Commute Card
  * Custom card for Home Assistant with CSS animations and dynamic backgrounds
  * 
- * @version 1.0.0
+ * @version 2.0.0
  * @author smalarz
  * @license MIT
  */
 
-const CARD_VERSION = '1.0.0';
+const CARD_VERSION = '2.0.0';
 
 // Internationalization
 const I18N = {
   pl: {
-    toWork: 'Do pracy',
-    toHome: 'Z pracy do domu',
     noData: 'brak danych',
     min: 'min',
-    traffic: 'Ruch',
-    light: 'Mały',
+    light: 'Mały ruch',
     moderate: 'Umiarkowany',
-    heavy: 'Duży',
-    veryHeavy: 'Bardzo duży',
-    leaveNow: 'Wyjedź teraz!',
-    optimal: 'Optymalny czas',
-    delayed: 'Korki',
+    heavy: 'Duży ruch',
+    veryHeavy: 'Korki!',
     name: 'Dojazdy',
     editor: {
-      entity_to_work: 'Sensor do pracy',
-      entity_to_home: 'Sensor do domu',
       name: 'Nazwa karty',
       show_animations: 'Pokaż animacje',
-      warning_threshold: 'Próg ostrzeżenia (min)',
-      danger_threshold: 'Próg alarmu (min)',
-      optimal_threshold: 'Próg optymalny (min)',
-      show_traffic_indicator: 'Pokaż wskaźnik ruchu',
-      icon_style: 'Styl ikon'
+      show_road: 'Pokaż animowaną drogę',
+      show_traffic_light: 'Pokaż sygnalizator',
+      routes: 'Trasy',
+      add_route: '+ Dodaj trasę',
+      route_entity: 'Sensor (czas w minutach)',
+      route_name: 'Nazwa trasy',
+      route_icon: 'Ikona',
+      remove: 'Usuń'
     }
   },
   en: {
-    toWork: 'To work',
-    toHome: 'Back home',
     noData: 'no data',
     min: 'min',
-    traffic: 'Traffic',
-    light: 'Light',
+    light: 'Light traffic',
     moderate: 'Moderate',
-    heavy: 'Heavy',
-    veryHeavy: 'Very heavy',
-    leaveNow: 'Leave now!',
-    optimal: 'Optimal time',
-    delayed: 'Traffic jam',
+    heavy: 'Heavy traffic',
+    veryHeavy: 'Traffic jam!',
     name: 'Commute',
     editor: {
-      entity_to_work: 'Sensor to work',
-      entity_to_home: 'Sensor to home',
       name: 'Card name',
       show_animations: 'Show animations',
-      warning_threshold: 'Warning threshold (min)',
-      danger_threshold: 'Danger threshold (min)',
-      optimal_threshold: 'Optimal threshold (min)',
-      show_traffic_indicator: 'Show traffic indicator',
-      icon_style: 'Icon style'
+      show_road: 'Show animated road',
+      show_traffic_light: 'Show traffic light',
+      routes: 'Routes',
+      add_route: '+ Add route',
+      route_entity: 'Sensor (time in minutes)',
+      route_name: 'Route name',
+      route_icon: 'Icon',
+      remove: 'Remove'
     }
   },
   de: {
-    toWork: 'Zur Arbeit',
-    toHome: 'Nach Hause',
     noData: 'keine Daten',
     min: 'min',
-    traffic: 'Verkehr',
-    light: 'Gering',
+    light: 'Wenig Verkehr',
     moderate: 'Mäßig',
-    heavy: 'Stark',
-    veryHeavy: 'Sehr stark',
-    leaveNow: 'Jetzt losfahren!',
-    optimal: 'Optimale Zeit',
-    delayed: 'Stau',
+    heavy: 'Viel Verkehr',
+    veryHeavy: 'Stau!',
     name: 'Pendeln',
     editor: {
-      entity_to_work: 'Sensor zur Arbeit',
-      entity_to_home: 'Sensor nach Hause',
       name: 'Kartenname',
       show_animations: 'Animationen anzeigen',
-      warning_threshold: 'Warnschwelle (min)',
-      danger_threshold: 'Alarmschwelle (min)',
-      optimal_threshold: 'Optimalschwelle (min)',
-      show_traffic_indicator: 'Verkehrsanzeige',
-      icon_style: 'Icon-Stil'
+      show_road: 'Animierte Straße anzeigen',
+      show_traffic_light: 'Ampel anzeigen',
+      routes: 'Routen',
+      add_route: '+ Route hinzufügen',
+      route_entity: 'Sensor (Zeit in Minuten)',
+      route_name: 'Routenname',
+      route_icon: 'Icon',
+      remove: 'Entfernen'
     }
   }
 };
@@ -96,15 +81,18 @@ const ICONS = {
   car: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`,
   home: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`,
   work: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>`,
-  traffic: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 10h-3V8.86c1.72-.45 3-2 3-3.86h-3V4c0-.55-.45-1-1-1H8c-.55 0-1 .45-1 1v1H4c0 1.86 1.28 3.41 3 3.86V10H4c0 1.86 1.28 3.41 3 3.86V15H4c0 1.86 1.28 3.41 3 3.86V20c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1.14c1.72-.45 3-2 3-3.86h-3v-1.14c1.72-.45 3-2 3-3.86zm-8 7c-1.11 0-2-.9-2-2s.89-2 2-2c1.1 0 2 .9 2 2s-.89 2-2 2zm0-5c-1.11 0-2-.9-2-2s.89-2 2-2c1.1 0 2 .9 2 2s-.89 2-2 2zm0-5c-1.11 0-2-.9-2-2 0-.55.22-1.05.59-1.41C12.95 4.22 13.45 4 14 4h-2c-1.1 0-2 .9-2 2s.89 2 2 2z"/></svg>`,
   warning: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`,
-  clock: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>`
+  clock: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>`,
+  map: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>`,
+  school: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>`,
+  store: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.36 9l.6 3H5.04l.6-3h12.72M20 4H4v2h16V4zm0 3H4l-1 5v2h1v6h10v-6h4v6h2v-6h1v-2l-1-5zM6 18v-4h6v4H6z"/></svg>`,
+  gym: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/></svg>`
 };
 
 // Get language from Home Assistant
 function getLang(hass) {
-  const lang = hass?.language || navigator.language?.split('-')[0] || 'en';
+  const lang = hass?.language?.split('-')[0] || navigator.language?.split('-')[0] || 'en';
   return I18N[lang] || I18N.en;
 }
 
@@ -125,7 +113,7 @@ function getTrafficStatus(time, config, lang) {
   }
 }
 
-// CSS Styles
+// CSS Styles - CALM animations
 const STYLES = `
   :host {
     --acc-bg-morning: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
@@ -136,29 +124,28 @@ const STYLES = `
     --acc-text-secondary: rgba(255,255,255,0.8);
     --acc-card-bg: rgba(255,255,255,0.1);
     --acc-card-border: rgba(255,255,255,0.2);
-    --acc-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    --acc-blur: blur(10px);
     --acc-optimal: #10b981;
     --acc-warning: #f59e0b;
     --acc-danger: #ef4444;
     --acc-radius: 16px;
-    --acc-name-size: 14px;
-    --acc-time-size: 48px;
-    --acc-label-size: 13px;
+    --acc-time-size: 42px;
+  }
+
+  * {
+    box-sizing: border-box;
   }
 
   .acc-container {
     position: relative;
     border-radius: var(--acc-radius);
     overflow: hidden;
-    min-height: 180px;
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 160px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   .acc-background {
     position: absolute;
     inset: 0;
-    transition: background 1s ease;
   }
 
   .acc-background.morning { background: var(--acc-bg-morning); }
@@ -166,107 +153,83 @@ const STYLES = `
   .acc-background.evening { background: var(--acc-bg-evening); }
   .acc-background.night { background: var(--acc-bg-night); }
 
-  /* Animated road */
+  /* Road - SLOW animation */
   .acc-road {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 40px;
+    height: 35px;
     background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
     overflow: hidden;
   }
 
-  .acc-road::before {
-    content: '';
+  .acc-road-line {
     position: absolute;
     top: 50%;
     left: 0;
     width: 200%;
-    height: 4px;
+    height: 3px;
     background: repeating-linear-gradient(
       90deg,
       #fbbf24 0px,
-      #fbbf24 30px,
-      transparent 30px,
-      transparent 60px
+      #fbbf24 25px,
+      transparent 25px,
+      transparent 50px
     );
-    animation: roadMove 2s linear infinite;
     transform: translateY(-50%);
+    animation: roadMove 4s linear infinite;
   }
 
   @keyframes roadMove {
-    0% { transform: translateX(0) translateY(-50%); }
-    100% { transform: translateX(-60px) translateY(-50%); }
+    from { transform: translateX(0) translateY(-50%); }
+    to { transform: translateX(-50px) translateY(-50%); }
   }
 
-  .acc-road.paused::before {
-    animation-play-state: paused;
-  }
-
-  /* Animated cars on road */
-  .acc-cars {
+  /* Single car - SLOW */
+  .acc-car-anim {
     position: absolute;
-    bottom: 45px;
-    left: 0;
-    right: 0;
-    height: 30px;
-    overflow: hidden;
+    bottom: 40px;
+    width: 35px;
+    height: 18px;
+    color: #3b82f6;
+    animation: carDrive 12s linear infinite;
+    opacity: 0.9;
   }
 
-  .acc-car {
-    position: absolute;
-    width: 40px;
-    height: 20px;
-    animation: carMove 8s linear infinite;
-  }
-
-  .acc-car svg {
+  .acc-car-anim svg {
     width: 100%;
     height: 100%;
   }
 
-  .acc-car.car1 { left: -50px; animation-delay: 0s; color: #ef4444; }
-  .acc-car.car2 { left: -50px; animation-delay: 2s; color: #3b82f6; }
-  .acc-car.car3 { left: -50px; animation-delay: 4s; color: #10b981; }
-  .acc-car.car4 { left: -50px; animation-delay: 6s; color: #f59e0b; }
-
-  @keyframes carMove {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(calc(100vw + 100px)); }
+  @keyframes carDrive {
+    from { left: -40px; }
+    to { left: 100%; }
   }
 
-  .acc-cars.heavy .acc-car {
-    animation-duration: 15s;
-  }
-
-  .acc-cars.critical .acc-car {
-    animation-duration: 25s;
-  }
-
-  /* Traffic lights */
+  /* Traffic light */
   .acc-traffic-light {
     position: absolute;
-    right: 20px;
-    bottom: 50px;
-    width: 20px;
-    height: 50px;
+    right: 15px;
+    bottom: 45px;
+    width: 18px;
+    height: 46px;
     background: #1f2937;
     border-radius: 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-evenly;
-    padding: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    padding: 4px 3px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
   .acc-light {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    opacity: 0.3;
-    transition: opacity 0.3s, box-shadow 0.3s;
+    opacity: 0.25;
+    transition: all 0.5s ease;
   }
 
   .acc-light.red { background: #ef4444; }
@@ -275,37 +238,36 @@ const STYLES = `
 
   .acc-light.active {
     opacity: 1;
-    box-shadow: 0 0 20px currentColor;
+    box-shadow: 0 0 12px currentColor;
   }
-
-  .acc-light.red.active { box-shadow: 0 0 20px #ef4444; }
-  .acc-light.yellow.active { box-shadow: 0 0 20px #fbbf24; }
-  .acc-light.green.active { box-shadow: 0 0 20px #10b981; }
+  .acc-light.red.active { box-shadow: 0 0 12px #ef4444; }
+  .acc-light.yellow.active { box-shadow: 0 0 12px #fbbf24; }
+  .acc-light.green.active { box-shadow: 0 0 12px #10b981; }
 
   /* Content */
   .acc-content {
     position: relative;
     z-index: 10;
-    padding: 20px;
-    padding-bottom: 50px;
+    padding: 16px;
+    padding-bottom: 45px;
     color: var(--acc-text-primary);
   }
 
   .acc-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 14px;
   }
 
   .acc-header-icon {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     opacity: 0.9;
   }
 
   .acc-name {
-    font-size: var(--acc-name-size);
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -313,56 +275,54 @@ const STYLES = `
   }
 
   .acc-routes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .acc-route {
+    flex: 1 1 140px;
+    min-width: 140px;
     background: var(--acc-card-bg);
-    backdrop-filter: var(--acc-blur);
-    -webkit-backdrop-filter: var(--acc-blur);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--acc-card-border);
-    border-radius: 12px;
-    padding: 16px;
-    transition: transform 0.3s, box-shadow 0.3s;
-  }
-
-  .acc-route:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--acc-shadow);
+    border-radius: 10px;
+    padding: 14px;
   }
 
   .acc-route-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 6px;
+    margin-bottom: 10px;
   }
 
   .acc-route-icon {
-    width: 20px;
-    height: 20px;
-    opacity: 0.8;
+    width: 18px;
+    height: 18px;
+    opacity: 0.85;
   }
 
   .acc-route-label {
-    font-size: var(--acc-label-size);
+    font-size: 12px;
     font-weight: 500;
     opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .acc-route-time {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: 4px;
   }
 
   .acc-time-value {
     font-size: var(--acc-time-size);
     font-weight: 700;
     line-height: 1;
-    transition: color 0.3s;
   }
 
   .acc-time-value.optimal { color: var(--acc-optimal); }
@@ -370,7 +330,7 @@ const STYLES = `
   .acc-time-value.danger { color: var(--acc-danger); }
 
   .acc-time-unit {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
     opacity: 0.7;
   }
@@ -378,73 +338,39 @@ const STYLES = `
   .acc-route-status {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    font-size: 12px;
-    opacity: 0.8;
+    gap: 5px;
+    margin-top: 6px;
+    font-size: 11px;
+    opacity: 0.85;
   }
 
   .acc-status-icon {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
   }
 
   .acc-no-data {
     color: var(--acc-text-secondary);
-    font-size: 16px;
+    font-size: 14px;
     font-style: italic;
   }
 
-  /* Pulse animation for warnings */
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
+  /* Subtle pulse for danger only */
   .acc-time-value.danger {
-    animation: pulse 1.5s ease-in-out infinite;
+    animation: gentlePulse 2.5s ease-in-out infinite;
   }
 
-  /* Shine effect */
-  .acc-route::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255,255,255,0.1),
-      transparent
-    );
-    animation: shine 3s ease-in-out infinite;
-    pointer-events: none;
+  @keyframes gentlePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
   }
 
-  @keyframes shine {
-    0% { left: -100%; }
-    50%, 100% { left: 100%; }
-  }
-
-  .acc-route {
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Stars for night */
+  /* Stars for night - SLOW twinkle */
   .acc-stars {
     position: absolute;
     inset: 0;
     overflow: hidden;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 1s;
-  }
-
-  .acc-background.night + .acc-stars {
-    opacity: 1;
   }
 
   .acc-star {
@@ -453,78 +379,24 @@ const STYLES = `
     height: 2px;
     background: white;
     border-radius: 50%;
-    animation: twinkle 2s ease-in-out infinite;
+    animation: twinkle 4s ease-in-out infinite;
   }
 
   @keyframes twinkle {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-  }
-
-  /* Clouds */
-  .acc-clouds {
-    position: absolute;
-    top: 10px;
-    left: 0;
-    right: 0;
-    height: 60px;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .acc-cloud {
-    position: absolute;
-    background: rgba(255,255,255,0.3);
-    border-radius: 50%;
-    animation: cloudFloat 20s linear infinite;
-  }
-
-  .acc-cloud::before,
-  .acc-cloud::after {
-    content: '';
-    position: absolute;
-    background: inherit;
-    border-radius: 50%;
-  }
-
-  .acc-cloud.c1 {
-    width: 60px;
-    height: 20px;
-    top: 10px;
-    left: -80px;
-    animation-duration: 25s;
-  }
-  .acc-cloud.c1::before { width: 30px; height: 30px; top: -15px; left: 10px; }
-  .acc-cloud.c1::after { width: 25px; height: 25px; top: -10px; left: 30px; }
-
-  .acc-cloud.c2 {
-    width: 50px;
-    height: 16px;
-    top: 30px;
-    left: -60px;
-    animation-duration: 30s;
-    animation-delay: 5s;
-  }
-  .acc-cloud.c2::before { width: 25px; height: 25px; top: -12px; left: 8px; }
-  .acc-cloud.c2::after { width: 20px; height: 20px; top: -8px; left: 25px; }
-
-  @keyframes cloudFloat {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(calc(100vw + 200px)); }
-  }
-
-  .acc-background.night .acc-clouds {
-    opacity: 0.2;
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.8; }
   }
 
   /* No animations mode */
-  .acc-container.no-animations .acc-road::before,
-  .acc-container.no-animations .acc-car,
-  .acc-container.no-animations .acc-cloud,
-  .acc-container.no-animations .acc-star,
-  .acc-container.no-animations .acc-route::after,
-  .acc-container.no-animations .acc-time-value.danger {
+  .acc-container.no-anim .acc-road-line,
+  .acc-container.no-anim .acc-car-anim,
+  .acc-container.no-anim .acc-star,
+  .acc-container.no-anim .acc-time-value.danger {
     animation: none !important;
+  }
+  
+  .acc-container.no-anim .acc-car-anim {
+    display: none;
   }
 `;
 
@@ -536,48 +408,73 @@ class AnimatedCommuteCard extends HTMLElement {
     this._hass = null;
   }
 
-  static get properties() {
-    return {
-      _config: {},
-      _hass: {}
-    };
-  }
-
   static getConfigElement() {
     return document.createElement('animated-commute-card-editor');
   }
 
   static getStubConfig() {
     return {
-      entity_to_work: '',
-      entity_to_home: '',
       name: '',
       show_animations: true,
+      show_road: true,
+      show_traffic_light: true,
       warning_threshold: 45,
       danger_threshold: 60,
       optimal_threshold: 25,
-      show_traffic_indicator: true
+      routes: [
+        { entity: '', name: 'Do pracy', icon: 'work' },
+        { entity: '', name: 'Do domu', icon: 'home' }
+      ]
     };
   }
 
   setConfig(config) {
-    if (!config.entity_to_work && !config.entity_to_home) {
-      throw new Error('Please define at least one entity (entity_to_work or entity_to_home)');
+    // Migration from old format
+    if (config.entity_to_work || config.entity_to_home) {
+      const routes = [];
+      if (config.entity_to_work) {
+        routes.push({ entity: config.entity_to_work, name: 'Do pracy', icon: 'work' });
+      }
+      if (config.entity_to_home) {
+        routes.push({ entity: config.entity_to_home, name: 'Do domu', icon: 'home' });
+      }
+      config = { ...config, routes };
+      delete config.entity_to_work;
+      delete config.entity_to_home;
     }
+
+    if (!config.routes || config.routes.length === 0) {
+      throw new Error('Dodaj przynajmniej jedną trasę');
+    }
+
     this._config = {
       name: '',
       show_animations: true,
+      show_road: true,
+      show_traffic_light: true,
       warning_threshold: 45,
       danger_threshold: 60,
       optimal_threshold: 25,
-      show_traffic_indicator: true,
       ...config
     };
+    
     this._render();
   }
 
   set hass(hass) {
+    const oldHass = this._hass;
     this._hass = hass;
+    
+    // Only re-render if entity states changed
+    if (oldHass && this._config.routes) {
+      const changed = this._config.routes.some(route => {
+        const oldState = oldHass.states[route.entity]?.state;
+        const newState = hass.states[route.entity]?.state;
+        return oldState !== newState;
+      });
+      if (!changed) return;
+    }
+    
     this._render();
   }
 
@@ -602,28 +499,42 @@ class AnimatedCommuteCard extends HTMLElement {
     return 'day';
   }
 
-  _getTrafficLevel(toWorkTime, toHomeTime) {
-    const maxTime = Math.max(
-      parseInt(toWorkTime) || 0,
-      parseInt(toHomeTime) || 0
-    );
+  _getWorstTrafficLevel() {
+    let worstLevel = 'optimal';
+    const levels = ['optimal', 'moderate', 'heavy', 'critical'];
     
-    if (maxTime <= this._config.optimal_threshold) return 'optimal';
-    if (maxTime <= this._config.warning_threshold) return 'moderate';
-    if (maxTime <= this._config.danger_threshold) return 'heavy';
-    return 'critical';
+    for (const route of this._config.routes || []) {
+      const state = this._hass?.states[route.entity];
+      if (!state || ['unknown', 'unavailable'].includes(state.state)) continue;
+      
+      const time = parseInt(state.state);
+      let level = 'optimal';
+      if (time > this._config.danger_threshold) level = 'critical';
+      else if (time > this._config.warning_threshold) level = 'heavy';
+      else if (time > this._config.optimal_threshold) level = 'moderate';
+      
+      if (levels.indexOf(level) > levels.indexOf(worstLevel)) {
+        worstLevel = level;
+      }
+    }
+    
+    return worstLevel;
   }
 
-  _generateStars(count = 20) {
+  _generateStars(count = 15) {
     let stars = '';
     for (let i = 0; i < count; i++) {
       const x = Math.random() * 100;
-      const y = Math.random() * 60;
-      const delay = Math.random() * 2;
-      const size = 1 + Math.random() * 2;
-      stars += `<div class="acc-star" style="left:${x}%;top:${y}%;animation-delay:${delay}s;width:${size}px;height:${size}px;"></div>`;
+      const y = Math.random() * 50;
+      const delay = Math.random() * 4;
+      stars += `<div class="acc-star" style="left:${x}%;top:${y}%;animation-delay:${delay}s;"></div>`;
     }
     return stars;
+  }
+
+  _getIcon(iconName) {
+    if (ICONS[iconName]) return ICONS[iconName];
+    return ICONS.map;
   }
 
   _render() {
@@ -631,24 +542,7 @@ class AnimatedCommuteCard extends HTMLElement {
 
     const lang = getLang(this._hass);
     const timeOfDay = this._getTimeOfDay();
-    
-    const toWorkState = this._config.entity_to_work 
-      ? this._hass.states[this._config.entity_to_work] 
-      : null;
-    const toHomeState = this._config.entity_to_home 
-      ? this._hass.states[this._config.entity_to_home] 
-      : null;
-
-    const toWorkTime = toWorkState?.state;
-    const toHomeTime = toHomeState?.state;
-    
-    const toWorkValid = toWorkTime && !['unknown', 'unavailable'].includes(toWorkTime);
-    const toHomeValid = toHomeTime && !['unknown', 'unavailable'].includes(toHomeTime);
-    
-    const toWorkStatus = toWorkValid ? getTrafficStatus(parseInt(toWorkTime), this._config, lang) : null;
-    const toHomeStatus = toHomeValid ? getTrafficStatus(parseInt(toHomeTime), this._config, lang) : null;
-    
-    const trafficLevel = this._getTrafficLevel(toWorkTime, toHomeTime);
+    const trafficLevel = this._getWorstTrafficLevel();
     
     const getTimeClass = (time) => {
       if (!time || ['unknown', 'unavailable'].includes(time)) return '';
@@ -666,7 +560,42 @@ class AnimatedCommuteCard extends HTMLElement {
     
     const lights = getTrafficLight();
     const cardName = this._config.name || lang.name;
-    const animClass = this._config.show_animations ? '' : 'no-animations';
+    const animClass = this._config.show_animations ? '' : 'no-anim';
+    const showRoad = this._config.show_road !== false;
+    const showTrafficLight = this._config.show_traffic_light !== false;
+
+    // Build routes HTML
+    let routesHtml = '';
+    for (const route of this._config.routes || []) {
+      const state = this._hass.states[route.entity];
+      const time = state?.state;
+      const isValid = time && !['unknown', 'unavailable'].includes(time);
+      const status = isValid ? getTrafficStatus(parseInt(time), this._config, lang) : null;
+      const showWarning = isValid && parseInt(time) > 59;
+
+      routesHtml += `
+        <div class="acc-route">
+          <div class="acc-route-header">
+            <div class="acc-route-icon">${this._getIcon(route.icon)}</div>
+            <div class="acc-route-label">${route.name || route.entity}</div>
+          </div>
+          ${isValid ? `
+            <div class="acc-route-time">
+              <span class="acc-time-value ${getTimeClass(time)}">${showWarning ? '⚠️ ' : ''}${time}</span>
+              <span class="acc-time-unit">${lang.min}</span>
+            </div>
+            ${status ? `
+              <div class="acc-route-status" style="color: ${status.color}">
+                <span class="acc-status-icon">${ICONS[status.icon]}</span>
+                <span>${status.text}</span>
+              </div>
+            ` : ''}
+          ` : `
+            <div class="acc-no-data">${lang.noData}</div>
+          `}
+        </div>
+      `;
+    }
 
     this.shadowRoot.innerHTML = `
       <style>${STYLES}</style>
@@ -674,14 +603,7 @@ class AnimatedCommuteCard extends HTMLElement {
         <div class="acc-container ${animClass}">
           <div class="acc-background ${timeOfDay}"></div>
           
-          <div class="acc-stars">
-            ${this._generateStars(25)}
-          </div>
-          
-          <div class="acc-clouds">
-            <div class="acc-cloud c1"></div>
-            <div class="acc-cloud c2"></div>
-          </div>
+          ${timeOfDay === 'night' ? `<div class="acc-stars">${this._generateStars(15)}</div>` : ''}
           
           <div class="acc-content">
             <div class="acc-header">
@@ -690,64 +612,18 @@ class AnimatedCommuteCard extends HTMLElement {
             </div>
             
             <div class="acc-routes">
-              ${this._config.entity_to_work ? `
-                <div class="acc-route">
-                  <div class="acc-route-header">
-                    <div class="acc-route-icon">${ICONS.work}</div>
-                    <div class="acc-route-label">${lang.toWork}</div>
-                  </div>
-                  ${toWorkValid ? `
-                    <div class="acc-route-time">
-                      <span class="acc-time-value ${getTimeClass(toWorkTime)}">${parseInt(toWorkTime) > 59 ? '⚠️ ' : ''}${toWorkTime}</span>
-                      <span class="acc-time-unit">${lang.min}</span>
-                    </div>
-                    ${toWorkStatus ? `
-                      <div class="acc-route-status" style="color: ${toWorkStatus.color}">
-                        <span class="acc-status-icon">${ICONS[toWorkStatus.icon]}</span>
-                        <span>${toWorkStatus.text}</span>
-                      </div>
-                    ` : ''}
-                  ` : `
-                    <div class="acc-no-data">${lang.noData}</div>
-                  `}
-                </div>
-              ` : ''}
-              
-              ${this._config.entity_to_home ? `
-                <div class="acc-route">
-                  <div class="acc-route-header">
-                    <div class="acc-route-icon">${ICONS.home}</div>
-                    <div class="acc-route-label">${lang.toHome}</div>
-                  </div>
-                  ${toHomeValid ? `
-                    <div class="acc-route-time">
-                      <span class="acc-time-value ${getTimeClass(toHomeTime)}">${parseInt(toHomeTime) > 59 ? '⚠️ ' : ''}${toHomeTime}</span>
-                      <span class="acc-time-unit">${lang.min}</span>
-                    </div>
-                    ${toHomeStatus ? `
-                      <div class="acc-route-status" style="color: ${toHomeStatus.color}">
-                        <span class="acc-status-icon">${ICONS[toHomeStatus.icon]}</span>
-                        <span>${toHomeStatus.text}</span>
-                      </div>
-                    ` : ''}
-                  ` : `
-                    <div class="acc-no-data">${lang.noData}</div>
-                  `}
-                </div>
-              ` : ''}
+              ${routesHtml}
             </div>
           </div>
           
-          <div class="acc-cars ${trafficLevel}">
-            <div class="acc-car car1">${ICONS.car}</div>
-            <div class="acc-car car2">${ICONS.car}</div>
-            <div class="acc-car car3">${ICONS.car}</div>
-            <div class="acc-car car4">${ICONS.car}</div>
-          </div>
+          ${showRoad ? `
+            <div class="acc-car-anim">${ICONS.car}</div>
+            <div class="acc-road">
+              <div class="acc-road-line"></div>
+            </div>
+          ` : ''}
           
-          <div class="acc-road ${trafficLevel === 'critical' ? 'paused' : ''}"></div>
-          
-          ${this._config.show_traffic_indicator ? `
+          ${showTrafficLight && showRoad ? `
             <div class="acc-traffic-light">
               <div class="acc-light red ${lights.red ? 'active' : ''}"></div>
               <div class="acc-light yellow ${lights.yellow ? 'active' : ''}"></div>
@@ -764,160 +640,384 @@ class AnimatedCommuteCard extends HTMLElement {
   }
 }
 
-// Visual Editor
+// ============================================
+// STABLE Visual Editor - no constant re-renders
+// ============================================
 class AnimatedCommuteCardEditor extends HTMLElement {
   constructor() {
     super();
     this._config = {};
     this._hass = null;
+    this._rendered = false;
+    this._entityOptions = '';
   }
 
   setConfig(config) {
-    this._config = config;
-    this._render();
+    this._config = JSON.parse(JSON.stringify(config || {}));
+    
+    if (!this._config.routes) {
+      this._config.routes = [];
+    }
+    
+    if (this._rendered) {
+      this._render();
+    }
   }
 
   set hass(hass) {
+    const firstTime = !this._hass;
     this._hass = hass;
-    this._render();
+    
+    if (firstTime && hass) {
+      const entities = Object.keys(hass.states)
+        .filter(e => e.startsWith('sensor.'))
+        .sort();
+      this._entityOptions = entities.map(e => `<option value="${e}">${e}</option>`).join('');
+      this._render();
+      this._rendered = true;
+    }
   }
 
   _render() {
     if (!this._hass) return;
 
     const lang = getLang(this._hass);
-    const entities = Object.keys(this._hass.states)
-      .filter(e => e.startsWith('sensor.'))
-      .sort();
+    const config = this._config;
 
     this.innerHTML = `
       <style>
-        .editor-row {
+        .acc-editor {
+          padding: 8px 0;
+        }
+        .acc-editor-row {
           display: flex;
           flex-direction: column;
           margin-bottom: 16px;
         }
-        .editor-row label {
+        .acc-editor-row label {
           font-weight: 500;
-          margin-bottom: 4px;
+          margin-bottom: 6px;
           color: var(--primary-text-color);
+          font-size: 14px;
         }
-        .editor-row input,
-        .editor-row select {
-          padding: 8px 12px;
+        .acc-editor-row input,
+        .acc-editor-row select {
+          padding: 10px 12px;
           border: 1px solid var(--divider-color);
           border-radius: 8px;
           background: var(--card-background-color);
           color: var(--primary-text-color);
           font-size: 14px;
+          width: 100%;
         }
-        .editor-row input[type="checkbox"] {
-          width: 20px;
-          height: 20px;
+        .acc-editor-row input:focus,
+        .acc-editor-row select:focus {
+          outline: none;
+          border-color: var(--primary-color);
         }
-        .checkbox-row {
+        .acc-checkbox-row {
           flex-direction: row;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
-        .checkbox-row label {
+        .acc-checkbox-row input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
+        }
+        .acc-checkbox-row label {
           margin-bottom: 0;
+        }
+        .acc-section-title {
+          font-weight: 600;
+          font-size: 15px;
+          margin: 20px 0 12px;
+          color: var(--primary-text-color);
+          border-bottom: 1px solid var(--divider-color);
+          padding-bottom: 8px;
+        }
+        .acc-route-card {
+          background: var(--secondary-background-color);
+          border-radius: 10px;
+          padding: 14px;
+          margin-bottom: 12px;
+          border: 1px solid var(--divider-color);
+        }
+        .acc-route-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        .acc-route-title {
+          font-weight: 500;
+          font-size: 14px;
+        }
+        .acc-btn-remove {
+          background: #ef4444;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 6px 12px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .acc-btn-remove:hover {
+          background: #dc2626;
+        }
+        .acc-route-fields {
+          display: grid;
+          gap: 10px;
+        }
+        .acc-route-field label {
+          font-size: 12px;
+          color: var(--secondary-text-color);
+          display: block;
+          margin-bottom: 4px;
+        }
+        .acc-route-field input,
+        .acc-route-field select {
+          padding: 8px 10px;
+          border: 1px solid var(--divider-color);
+          border-radius: 6px;
+          background: var(--card-background-color);
+          color: var(--primary-text-color);
+          font-size: 13px;
+          width: 100%;
+        }
+        .acc-btn-add {
+          background: var(--primary-color);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 10px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          width: 100%;
+          margin-top: 8px;
+        }
+        .acc-btn-add:hover {
+          opacity: 0.9;
+        }
+        .acc-thresholds {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 10px;
+        }
+        .acc-threshold label {
+          font-size: 11px;
+          display: block;
+          margin-bottom: 4px;
+        }
+        .acc-threshold input {
+          padding: 8px;
+          border: 1px solid var(--divider-color);
+          border-radius: 6px;
+          background: var(--card-background-color);
+          color: var(--primary-text-color);
+          font-size: 13px;
+          text-align: center;
+          width: 100%;
         }
       </style>
       
-      <div class="editor-row">
-        <label>${lang.editor.entity_to_work}</label>
-        <select id="entity_to_work">
-          <option value="">-- ${lang.editor.entity_to_work} --</option>
-          ${entities.map(e => `
-            <option value="${e}" ${this._config.entity_to_work === e ? 'selected' : ''}>${e}</option>
-          `).join('')}
-        </select>
-      </div>
-      
-      <div class="editor-row">
-        <label>${lang.editor.entity_to_home}</label>
-        <select id="entity_to_home">
-          <option value="">-- ${lang.editor.entity_to_home} --</option>
-          ${entities.map(e => `
-            <option value="${e}" ${this._config.entity_to_home === e ? 'selected' : ''}>${e}</option>
-          `).join('')}
-        </select>
-      </div>
-      
-      <div class="editor-row">
-        <label>${lang.editor.name}</label>
-        <input type="text" id="name" value="${this._config.name || ''}" placeholder="${lang.name}">
-      </div>
-      
-      <div class="editor-row">
-        <label>${lang.editor.optimal_threshold}</label>
-        <input type="number" id="optimal_threshold" value="${this._config.optimal_threshold || 25}" min="1" max="120">
-      </div>
-      
-      <div class="editor-row">
-        <label>${lang.editor.warning_threshold}</label>
-        <input type="number" id="warning_threshold" value="${this._config.warning_threshold || 45}" min="1" max="180">
-      </div>
-      
-      <div class="editor-row">
-        <label>${lang.editor.danger_threshold}</label>
-        <input type="number" id="danger_threshold" value="${this._config.danger_threshold || 60}" min="1" max="240">
-      </div>
-      
-      <div class="editor-row checkbox-row">
-        <input type="checkbox" id="show_animations" ${this._config.show_animations !== false ? 'checked' : ''}>
-        <label>${lang.editor.show_animations}</label>
-      </div>
-      
-      <div class="editor-row checkbox-row">
-        <input type="checkbox" id="show_traffic_indicator" ${this._config.show_traffic_indicator !== false ? 'checked' : ''}>
-        <label>${lang.editor.show_traffic_indicator}</label>
+      <div class="acc-editor">
+        <div class="acc-editor-row">
+          <label>${lang.editor.name}</label>
+          <input type="text" id="acc-name" value="${config.name || ''}" placeholder="${lang.name}">
+        </div>
+
+        <div class="acc-editor-row acc-checkbox-row">
+          <input type="checkbox" id="acc-animations" ${config.show_animations !== false ? 'checked' : ''}>
+          <label>${lang.editor.show_animations}</label>
+        </div>
+
+        <div class="acc-editor-row acc-checkbox-row">
+          <input type="checkbox" id="acc-road" ${config.show_road !== false ? 'checked' : ''}>
+          <label>${lang.editor.show_road}</label>
+        </div>
+
+        <div class="acc-editor-row acc-checkbox-row">
+          <input type="checkbox" id="acc-traffic-light" ${config.show_traffic_light !== false ? 'checked' : ''}>
+          <label>${lang.editor.show_traffic_light}</label>
+        </div>
+
+        <div class="acc-section-title">Progi czasowe (min)</div>
+        <div class="acc-thresholds">
+          <div class="acc-threshold">
+            <label style="color: #10b981;">✓ Optymalny</label>
+            <input type="number" id="acc-optimal" value="${config.optimal_threshold || 25}" min="1">
+          </div>
+          <div class="acc-threshold">
+            <label style="color: #f59e0b;">⚠ Ostrzeżenie</label>
+            <input type="number" id="acc-warning" value="${config.warning_threshold || 45}" min="1">
+          </div>
+          <div class="acc-threshold">
+            <label style="color: #ef4444;">🚨 Alarm</label>
+            <input type="number" id="acc-danger" value="${config.danger_threshold || 60}" min="1">
+          </div>
+        </div>
+
+        <div class="acc-section-title">${lang.editor.routes}</div>
+        <div id="acc-routes-list"></div>
+        <button class="acc-btn-add" id="acc-add-route">${lang.editor.add_route}</button>
       </div>
     `;
 
-    // Event listeners
-    ['entity_to_work', 'entity_to_home', 'name', 'optimal_threshold', 'warning_threshold', 'danger_threshold'].forEach(id => {
-      const el = this.querySelector(`#${id}`);
-      if (el) {
-        el.addEventListener('change', (e) => this._valueChanged(id, e.target.value));
+    this._renderRoutes();
+    this._attachListeners();
+  }
+
+  _renderRoutes() {
+    const container = this.querySelector('#acc-routes-list');
+    if (!container) return;
+
+    const lang = getLang(this._hass);
+    
+    container.innerHTML = (this._config.routes || []).map((route, i) => `
+      <div class="acc-route-card" data-idx="${i}">
+        <div class="acc-route-header">
+          <span class="acc-route-title">Trasa ${i + 1}</span>
+          <button class="acc-btn-remove" data-idx="${i}">${lang.editor.remove}</button>
+        </div>
+        <div class="acc-route-fields">
+          <div class="acc-route-field">
+            <label>${lang.editor.route_entity}</label>
+            <select class="route-entity" data-idx="${i}">
+              <option value="">-- Wybierz --</option>
+              ${this._entityOptions}
+            </select>
+          </div>
+          <div class="acc-route-field">
+            <label>${lang.editor.route_name}</label>
+            <input type="text" class="route-name" data-idx="${i}" value="${route.name || ''}">
+          </div>
+          <div class="acc-route-field">
+            <label>${lang.editor.route_icon}</label>
+            <select class="route-icon" data-idx="${i}">
+              <option value="work" ${route.icon === 'work' ? 'selected' : ''}>🏢 Praca</option>
+              <option value="home" ${route.icon === 'home' ? 'selected' : ''}>🏠 Dom</option>
+              <option value="car" ${route.icon === 'car' ? 'selected' : ''}>🚗 Samochód</option>
+              <option value="school" ${route.icon === 'school' ? 'selected' : ''}>🎓 Szkoła</option>
+              <option value="store" ${route.icon === 'store' ? 'selected' : ''}>🏪 Sklep</option>
+              <option value="gym" ${route.icon === 'gym' ? 'selected' : ''}>💪 Siłownia</option>
+              <option value="map" ${route.icon === 'map' ? 'selected' : ''}>🗺️ Inne</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Set entity values after render
+    this.querySelectorAll('.route-entity').forEach(select => {
+      const idx = parseInt(select.dataset.idx);
+      const route = this._config.routes?.[idx];
+      if (route?.entity) {
+        select.value = route.entity;
       }
     });
 
-    ['show_animations', 'show_traffic_indicator'].forEach(id => {
-      const el = this.querySelector(`#${id}`);
-      if (el) {
-        el.addEventListener('change', (e) => this._valueChanged(id, e.target.checked));
-      }
+    // Attach route-specific listeners
+    this.querySelectorAll('.route-entity').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        this._updateRoute(idx, 'entity', e.target.value);
+      });
+    });
+
+    this.querySelectorAll('.route-name').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        this._updateRoute(idx, 'name', e.target.value);
+      });
+    });
+
+    this.querySelectorAll('.route-icon').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        this._updateRoute(idx, 'icon', e.target.value);
+      });
+    });
+
+    this.querySelectorAll('.acc-btn-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        this._config.routes.splice(idx, 1);
+        this._fire();
+        this._renderRoutes();
+      });
     });
   }
 
-  _valueChanged(key, value) {
-    if (key.includes('threshold')) {
-      value = parseInt(value) || 0;
-    }
-    
-    const newConfig = { ...this._config, [key]: value };
-    
-    const event = new CustomEvent('config-changed', {
-      detail: { config: newConfig },
+  _attachListeners() {
+    this.querySelector('#acc-name')?.addEventListener('change', (e) => {
+      this._config.name = e.target.value;
+      this._fire();
+    });
+
+    this.querySelector('#acc-animations')?.addEventListener('change', (e) => {
+      this._config.show_animations = e.target.checked;
+      this._fire();
+    });
+
+    this.querySelector('#acc-road')?.addEventListener('change', (e) => {
+      this._config.show_road = e.target.checked;
+      this._fire();
+    });
+
+    this.querySelector('#acc-traffic-light')?.addEventListener('change', (e) => {
+      this._config.show_traffic_light = e.target.checked;
+      this._fire();
+    });
+
+    this.querySelector('#acc-optimal')?.addEventListener('change', (e) => {
+      this._config.optimal_threshold = parseInt(e.target.value) || 25;
+      this._fire();
+    });
+
+    this.querySelector('#acc-warning')?.addEventListener('change', (e) => {
+      this._config.warning_threshold = parseInt(e.target.value) || 45;
+      this._fire();
+    });
+
+    this.querySelector('#acc-danger')?.addEventListener('change', (e) => {
+      this._config.danger_threshold = parseInt(e.target.value) || 60;
+      this._fire();
+    });
+
+    this.querySelector('#acc-add-route')?.addEventListener('click', () => {
+      if (!this._config.routes) this._config.routes = [];
+      this._config.routes.push({ entity: '', name: '', icon: 'car' });
+      this._fire();
+      this._renderRoutes();
+    });
+  }
+
+  _updateRoute(idx, key, value) {
+    if (!this._config.routes) this._config.routes = [];
+    if (!this._config.routes[idx]) this._config.routes[idx] = {};
+    this._config.routes[idx][key] = value;
+    this._fire();
+  }
+
+  _fire() {
+    this.dispatchEvent(new CustomEvent('config-changed', {
+      detail: { config: { ...this._config } },
       bubbles: true,
       composed: true
-    });
-    this.dispatchEvent(event);
+    }));
   }
 }
 
-// Register elements
+// Register
 customElements.define('animated-commute-card', AnimatedCommuteCard);
 customElements.define('animated-commute-card-editor', AnimatedCommuteCardEditor);
 
-// Register with HACS / HA
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'animated-commute-card',
   name: 'Animated Commute Card',
-  description: 'Commute card for Home Assistant with CSS animations and dynamic backgrounds',
+  description: 'Commute card with CSS animations and dynamic backgrounds',
   preview: true,
   documentationURL: 'https://github.com/smalarz/animated-commute-card'
 });
