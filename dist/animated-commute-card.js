@@ -2,12 +2,12 @@
  * Animated Commute Card
  * Custom card for Home Assistant with CSS animations and dynamic backgrounds
  * 
- * @version 2.0.0
+ * @version 3.0.0
  * @author smalarz
  * @license MIT
  */
 
-const CARD_VERSION = '2.0.0';
+const CARD_VERSION = '3.0.0';
 
 // Internationalization
 const I18N = {
@@ -116,19 +116,18 @@ function getTrafficStatus(time, config, lang) {
 // CSS Styles - CALM animations
 const STYLES = `
   :host {
-    --acc-bg-morning: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    --acc-bg-day: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --acc-bg-evening: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    --acc-bg-night: linear-gradient(135deg, #0c1445 0%, #1a237e 50%, #311b92 100%);
-    --acc-text-primary: #ffffff;
-    --acc-text-secondary: rgba(255,255,255,0.8);
-    --acc-card-bg: rgba(255,255,255,0.1);
-    --acc-card-border: rgba(255,255,255,0.2);
     --acc-optimal: #10b981;
     --acc-warning: #f59e0b;
     --acc-danger: #ef4444;
-    --acc-radius: 16px;
-    --acc-time-size: 42px;
+    --acc-accent-morning: linear-gradient(90deg, #667eea, #764ba2);
+    --acc-accent-day: linear-gradient(90deg, #4facfe, #00f2fe);
+    --acc-accent-evening: linear-gradient(90deg, #fa709a, #fee140);
+    --acc-accent-night: linear-gradient(90deg, #0c1445, #311b92);
+  }
+
+  ha-card {
+    overflow: hidden;
+    border-radius: var(--ha-card-border-radius, 12px);
   }
 
   * {
@@ -137,30 +136,34 @@ const STYLES = `
 
   .acc-container {
     position: relative;
-    border-radius: var(--acc-radius);
+    border-radius: var(--ha-card-border-radius, 12px);
     overflow: hidden;
     min-height: 160px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
-  .acc-background {
+  /* Accent bar at top - subtle gradient based on time of day */
+  .acc-accent-bar {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
   }
 
-  .acc-background.morning { background: var(--acc-bg-morning); }
-  .acc-background.day { background: var(--acc-bg-day); }
-  .acc-background.evening { background: var(--acc-bg-evening); }
-  .acc-background.night { background: var(--acc-bg-night); }
+  .acc-accent-bar.morning { background: var(--acc-accent-morning); }
+  .acc-accent-bar.day { background: var(--acc-accent-day); }
+  .acc-accent-bar.evening { background: var(--acc-accent-evening); }
+  .acc-accent-bar.night { background: var(--acc-accent-night); }
 
-  /* Road - SLOW animation */
+  /* Road - SLOW animation, toned down */
   .acc-road {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     height: 35px;
-    background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+    background: var(--divider-color, rgba(0,0,0,0.08));
     overflow: hidden;
   }
 
@@ -186,15 +189,15 @@ const STYLES = `
     to { transform: translateX(-50px) translateY(-50%); }
   }
 
-  /* Single car - SLOW */
+  /* Single car - SLOWER, more subtle */
   .acc-car-anim {
     position: absolute;
     bottom: 40px;
     width: 35px;
     height: 18px;
     color: #3b82f6;
-    animation: carDrive 12s linear infinite;
-    opacity: 0.9;
+    animation: carDrive 18s linear infinite;
+    opacity: 0.6;
   }
 
   .acc-car-anim svg {
@@ -207,71 +210,36 @@ const STYLES = `
     to { left: 100%; }
   }
 
-  /* Traffic light */
-  .acc-traffic-light {
-    position: absolute;
-    right: 15px;
-    bottom: 45px;
-    width: 18px;
-    height: 46px;
-    background: #1f2937;
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    padding: 4px 3px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-
-  .acc-light {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    opacity: 0.25;
-    transition: all 0.5s ease;
-  }
-
-  .acc-light.red { background: #ef4444; }
-  .acc-light.yellow { background: #fbbf24; }
-  .acc-light.green { background: #10b981; }
-
-  .acc-light.active {
-    opacity: 1;
-    box-shadow: 0 0 12px currentColor;
-  }
-  .acc-light.red.active { box-shadow: 0 0 12px #ef4444; }
-  .acc-light.yellow.active { box-shadow: 0 0 12px #fbbf24; }
-  .acc-light.green.active { box-shadow: 0 0 12px #10b981; }
-
   /* Content */
   .acc-content {
     position: relative;
     z-index: 10;
-    padding: 16px;
-    padding-bottom: 45px;
-    color: var(--acc-text-primary);
+    padding: 16px 16px 8px;
+    color: var(--primary-text-color);
   }
 
   .acc-header {
     display: flex;
     align-items: center;
     gap: 8px;
+    border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.06));
+    padding-bottom: 12px;
     margin-bottom: 14px;
   }
 
   .acc-header-icon {
     width: 22px;
     height: 22px;
-    opacity: 0.9;
+    color: var(--primary-text-color);
+    opacity: 0.6;
   }
 
   .acc-name {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    opacity: 0.9;
+    letter-spacing: 1.5px;
+    color: var(--secondary-text-color);
   }
 
   .acc-routes {
@@ -283,12 +251,11 @@ const STYLES = `
   .acc-route {
     flex: 1 1 140px;
     min-width: 140px;
-    background: var(--acc-card-bg);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--acc-card-border);
-    border-radius: 10px;
+    background: var(--secondary-background-color, rgba(0,0,0,0.04));
+    border: 1px solid var(--divider-color, rgba(0,0,0,0.08));
+    border-radius: 12px;
     padding: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
 
   .acc-route-header {
@@ -301,12 +268,14 @@ const STYLES = `
   .acc-route-icon {
     width: 18px;
     height: 18px;
+    color: var(--primary-text-color);
     opacity: 0.85;
   }
 
   .acc-route-label {
     font-size: 12px;
     font-weight: 500;
+    color: var(--primary-text-color);
     opacity: 0.9;
     white-space: nowrap;
     overflow: hidden;
@@ -320,9 +289,11 @@ const STYLES = `
   }
 
   .acc-time-value {
-    font-size: var(--acc-time-size);
-    font-weight: 700;
+    font-size: 32px;
+    font-weight: 300;
     line-height: 1;
+    letter-spacing: -0.5px;
+    transition: color 0.5s ease;
   }
 
   .acc-time-value.optimal { color: var(--acc-optimal); }
@@ -330,9 +301,11 @@ const STYLES = `
   .acc-time-value.danger { color: var(--acc-danger); }
 
   .acc-time-unit {
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 400;
     opacity: 0.7;
+    margin-left: 3px;
+    color: var(--primary-text-color);
   }
 
   .acc-route-status {
@@ -341,7 +314,8 @@ const STYLES = `
     gap: 5px;
     margin-top: 6px;
     font-size: 11px;
-    opacity: 0.85;
+    color: var(--secondary-text-color);
+    opacity: 0.7;
   }
 
   .acc-status-icon {
@@ -349,49 +323,28 @@ const STYLES = `
     height: 12px;
   }
 
+  /* Progress bar for traffic status */
+  .acc-traffic-bar {
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 8px;
+    transition: background-color 0.5s ease;
+    width: 100%;
+  }
+
+  .acc-traffic-bar.optimal { background: var(--acc-optimal); }
+  .acc-traffic-bar.warning { background: var(--acc-warning); }
+  .acc-traffic-bar.danger { background: var(--acc-danger); }
+
   .acc-no-data {
-    color: var(--acc-text-secondary);
+    color: var(--secondary-text-color);
     font-size: 14px;
     font-style: italic;
   }
 
-  /* Subtle pulse for danger only */
-  .acc-time-value.danger {
-    animation: gentlePulse 2.5s ease-in-out infinite;
-  }
-
-  @keyframes gentlePulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-  }
-
-  /* Stars for night - SLOW twinkle */
-  .acc-stars {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .acc-star {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: white;
-    border-radius: 50%;
-    animation: twinkle 4s ease-in-out infinite;
-  }
-
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.2; }
-    50% { opacity: 0.8; }
-  }
-
   /* No animations mode */
   .acc-container.no-anim .acc-road-line,
-  .acc-container.no-anim .acc-car-anim,
-  .acc-container.no-anim .acc-star,
-  .acc-container.no-anim .acc-time-value.danger {
+  .acc-container.no-anim .acc-car-anim {
     animation: none !important;
   }
   
@@ -521,17 +474,6 @@ class AnimatedCommuteCard extends HTMLElement {
     return worstLevel;
   }
 
-  _generateStars(count = 15) {
-    let stars = '';
-    for (let i = 0; i < count; i++) {
-      const x = Math.random() * 100;
-      const y = Math.random() * 50;
-      const delay = Math.random() * 4;
-      stars += `<div class="acc-star" style="left:${x}%;top:${y}%;animation-delay:${delay}s;"></div>`;
-    }
-    return stars;
-  }
-
   _getIcon(iconName) {
     if (ICONS[iconName]) return ICONS[iconName];
     return ICONS.map;
@@ -572,6 +514,7 @@ class AnimatedCommuteCard extends HTMLElement {
       const isValid = time && !['unknown', 'unavailable'].includes(time);
       const status = isValid ? getTrafficStatus(parseInt(time), this._config, lang) : null;
       const showWarning = isValid && parseInt(time) > 59;
+      const timeClass = getTimeClass(time);
 
       routesHtml += `
         <div class="acc-route">
@@ -581,15 +524,16 @@ class AnimatedCommuteCard extends HTMLElement {
           </div>
           ${isValid ? `
             <div class="acc-route-time">
-              <span class="acc-time-value ${getTimeClass(time)}">${showWarning ? '⚠️ ' : ''}${time}</span>
+              <span class="acc-time-value ${timeClass}">${showWarning ? '⚠️ ' : ''}${time}</span>
               <span class="acc-time-unit">${lang.min}</span>
             </div>
             ${status ? `
-              <div class="acc-route-status" style="color: ${status.color}">
-                <span class="acc-status-icon">${ICONS[status.icon]}</span>
+              <div class="acc-route-status">
+                <span class="acc-status-icon" style="color: ${status.color}">${ICONS[status.icon]}</span>
                 <span>${status.text}</span>
               </div>
             ` : ''}
+            <div class="acc-traffic-bar ${timeClass}"></div>
           ` : `
             <div class="acc-no-data">${lang.noData}</div>
           `}
@@ -601,9 +545,7 @@ class AnimatedCommuteCard extends HTMLElement {
       <style>${STYLES}</style>
       <ha-card>
         <div class="acc-container ${animClass}">
-          <div class="acc-background ${timeOfDay}"></div>
-          
-          ${timeOfDay === 'night' ? `<div class="acc-stars">${this._generateStars(15)}</div>` : ''}
+          <div class="acc-accent-bar ${timeOfDay}"></div>
           
           <div class="acc-content">
             <div class="acc-header">
@@ -622,14 +564,6 @@ class AnimatedCommuteCard extends HTMLElement {
               <div class="acc-road-line"></div>
             </div>
           ` : ''}
-          
-          ${showTrafficLight && showRoad ? `
-            <div class="acc-traffic-light">
-              <div class="acc-light red ${lights.red ? 'active' : ''}"></div>
-              <div class="acc-light yellow ${lights.yellow ? 'active' : ''}"></div>
-              <div class="acc-light green ${lights.green ? 'active' : ''}"></div>
-            </div>
-          ` : ''}
         </div>
       </ha-card>
     `;
@@ -646,6 +580,7 @@ class AnimatedCommuteCard extends HTMLElement {
 class AnimatedCommuteCardEditor extends HTMLElement {
   constructor() {
     super();
+    this.attachShadow({ mode: 'open' });
     this._config = {};
     this._hass = null;
     this._rendered = false;
@@ -684,7 +619,7 @@ class AnimatedCommuteCardEditor extends HTMLElement {
     const lang = getLang(this._hass);
     const config = this._config;
 
-    this.innerHTML = `
+    this.shadowRoot.innerHTML = `
       <style>
         .acc-editor {
           padding: 8px 0;
@@ -869,7 +804,7 @@ class AnimatedCommuteCardEditor extends HTMLElement {
   }
 
   _renderRoutes() {
-    const container = this.querySelector('#acc-routes-list');
+    const container = this.shadowRoot.querySelector('#acc-routes-list');
     if (!container) return;
 
     const lang = getLang(this._hass);
@@ -909,7 +844,7 @@ class AnimatedCommuteCardEditor extends HTMLElement {
     `).join('');
 
     // Set entity values after render
-    this.querySelectorAll('.route-entity').forEach(select => {
+    this.shadowRoot.querySelectorAll('.route-entity').forEach(select => {
       const idx = parseInt(select.dataset.idx);
       const route = this._config.routes?.[idx];
       if (route?.entity) {
@@ -918,28 +853,28 @@ class AnimatedCommuteCardEditor extends HTMLElement {
     });
 
     // Attach route-specific listeners
-    this.querySelectorAll('.route-entity').forEach(el => {
+    this.shadowRoot.querySelectorAll('.route-entity').forEach(el => {
       el.addEventListener('change', (e) => {
         const idx = parseInt(e.target.dataset.idx);
         this._updateRoute(idx, 'entity', e.target.value);
       });
     });
 
-    this.querySelectorAll('.route-name').forEach(el => {
+    this.shadowRoot.querySelectorAll('.route-name').forEach(el => {
       el.addEventListener('change', (e) => {
         const idx = parseInt(e.target.dataset.idx);
         this._updateRoute(idx, 'name', e.target.value);
       });
     });
 
-    this.querySelectorAll('.route-icon').forEach(el => {
+    this.shadowRoot.querySelectorAll('.route-icon').forEach(el => {
       el.addEventListener('change', (e) => {
         const idx = parseInt(e.target.dataset.idx);
         this._updateRoute(idx, 'icon', e.target.value);
       });
     });
 
-    this.querySelectorAll('.acc-btn-remove').forEach(btn => {
+    this.shadowRoot.querySelectorAll('.acc-btn-remove').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = parseInt(e.target.dataset.idx);
         this._config.routes.splice(idx, 1);
@@ -950,42 +885,42 @@ class AnimatedCommuteCardEditor extends HTMLElement {
   }
 
   _attachListeners() {
-    this.querySelector('#acc-name')?.addEventListener('change', (e) => {
+    this.shadowRoot.querySelector('#acc-name')?.addEventListener('change', (e) => {
       this._config.name = e.target.value;
       this._fire();
     });
 
-    this.querySelector('#acc-animations')?.addEventListener('change', (e) => {
+    this.shadowRoot.querySelector('#acc-animations')?.addEventListener('change', (e) => {
       this._config.show_animations = e.target.checked;
       this._fire();
     });
 
-    this.querySelector('#acc-road')?.addEventListener('change', (e) => {
+    this.shadowRoot.querySelector('#acc-road')?.addEventListener('change', (e) => {
       this._config.show_road = e.target.checked;
       this._fire();
     });
 
-    this.querySelector('#acc-traffic-light')?.addEventListener('change', (e) => {
+    this.shadowRoot.querySelector('#acc-traffic-light')?.addEventListener('change', (e) => {
       this._config.show_traffic_light = e.target.checked;
       this._fire();
     });
 
-    this.querySelector('#acc-optimal')?.addEventListener('change', (e) => {
+    this.shadowRoot.querySelector('#acc-optimal')?.addEventListener('change', (e) => {
       this._config.optimal_threshold = parseInt(e.target.value) || 25;
       this._fire();
     });
 
-    this.querySelector('#acc-warning')?.addEventListener('change', (e) => {
+    this.shadowRoot.querySelector('#acc-warning')?.addEventListener('change', (e) => {
       this._config.warning_threshold = parseInt(e.target.value) || 45;
       this._fire();
     });
 
-    this.querySelector('#acc-danger')?.addEventListener('change', (e) => {
+    this.shadowRoot.querySelector('#acc-danger')?.addEventListener('change', (e) => {
       this._config.danger_threshold = parseInt(e.target.value) || 60;
       this._fire();
     });
 
-    this.querySelector('#acc-add-route')?.addEventListener('click', () => {
+    this.shadowRoot.querySelector('#acc-add-route')?.addEventListener('click', () => {
       if (!this._config.routes) this._config.routes = [];
       this._config.routes.push({ entity: '', name: '', icon: 'car' });
       this._fire();
