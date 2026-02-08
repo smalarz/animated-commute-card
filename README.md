@@ -233,8 +233,8 @@ Want to add your language? PRs welcome! See the `I18N` object in the source.
 Built with ❤️ for the Home Assistant community.
 
 Part of the Animated Cards collection:
-- <a href="https://github.com/smalarz/animated-weather-card">Animated Weather Card</a>
-- <a href="https://github.com/smalarz/animated-graph-card">Animated Graph Card</a>
-- <a href="https://github.com/smalarz/animated-plant-card">Animated Plant Card</a>
-- <a href="https://github.com/smalarz/animated-gauge-card">Animated Gauge Card</a>
-- <a href="https://github.com/smalarz/animated-pie-card">Animated Pie Card</a>
+- [Animated Weather Card](https://github.com/smalarz/animated-weather-card)
+- [Animated Graph Card](https://github.com/smalarz/animated-graph-card)
+- [Animated Plant Card](https://github.com/smalarz/animated-plant-card)
+- [Animated Gauge Card](https://github.com/smalarz/animated-gauge-card)
+- [Animated Pie Card](https://github.com/smalarz/animated-pie-card)
