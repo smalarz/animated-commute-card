@@ -1,31 +1,27 @@
 # Animated Commute Card
 
-A custom commute card for [Home Assistant](https://www.home-assistant.io/) with CSS animations, dynamic day/night backgrounds, animated road with cars, and traffic indicators.
+A clean, modern commute card for Home Assistant — part of the Animated Cards family. Features subtle accent bar, traffic progress bars, color-coded times, and smooth integration with HA themes.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)]()
+[![Version](https://img.shields.io/badge/version-3.0.0-green.svg)]()
 
 ## Preview
 
-| Morning | Day | Evening | Night |
-|---------|-----|---------|-------|
-| ![Morning](screenshots/screenshot-morning.png) | ![Day](screenshots/screenshot-day.png) | ![Evening](screenshots/screenshot-evening.png) | ![Night](screenshots/screenshot-night.png) |
-
-| Optimal Traffic | Heavy Traffic |
-|-----------------|---------------|
-| ![Optimal](screenshots/screenshot-optimal.png) | ![Heavy](screenshots/screenshot-heavy.png) |
+> Screenshots coming soon — the card now uses a clean HA-native design with accent bar, progress bars, and theme integration.
 
 ## Features
 
-* **Dynamic backgrounds** — gradient changes based on time of day (morning, day, evening, night) using `sun.sun` entity
-* **CSS animations** — animated road with moving cars, drifting clouds, twinkling stars (at night)
-* **Traffic light indicator** — visual red/yellow/green light based on traffic conditions
+* **Clean HA integration** — uses `var(--card-background-color)`, `var(--primary-text-color)` and other HA theme variables
+* **Time-of-day accent bar** — subtle 4px gradient bar at top (morning/day/evening/night) using `sun.sun`
+* **Traffic progress bars** — colored bar under each route (green/yellow/red)
 * **Color-coded times** — green for optimal, yellow for moderate, red for heavy traffic
 * **Customizable thresholds** — set your own optimal/warning/danger thresholds
-* **SVG icons** — crisp at any resolution
+* **Multi-route support** — configure unlimited routes with `routes[]` array
+* **SVG icons** — crisp at any resolution (car, home, work, school, store, gym, map)
+* **Animated road** — optional subtle road animation at bottom
 * **Internationalization** — English, Polish, German (auto-detected from HA language)
-* **Visual editor** — full GUI configuration
+* **Visual editor** — full GUI configuration with Shadow DOM
 * **Responsive** — adapts to card width
 
 ## Installation
@@ -56,36 +52,60 @@ Add the card via the visual editor (search for "Animated Commute Card") or manua
 
 ```yaml
 type: custom:animated-commute-card
-entity_to_work: sensor.do_pracy
-entity_to_home: sensor.z_pracy_do_domu
+routes:
+  - entity: sensor.do_pracy
+    name: Do pracy
+    icon: work
+  - entity: sensor.z_pracy_do_domu
+    name: Do domu
+    icon: home
 ```
 
 ### Full
 
 ```yaml
 type: custom:animated-commute-card
-entity_to_work: sensor.do_pracy
-entity_to_home: sensor.z_pracy_do_domu
 name: Dojazdy
 show_animations: true
-show_traffic_indicator: true
+show_road: true
+show_traffic_light: true
 optimal_threshold: 25
 warning_threshold: 45
 danger_threshold: 60
+routes:
+  - entity: sensor.do_pracy
+    name: Do pracy
+    icon: work
+  - entity: sensor.z_pracy_do_domu
+    name: Do domu
+    icon: home
+  - entity: sensor.do_szkoly
+    name: Do szkoły
+    icon: school
 ```
 
 ### Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `entity_to_work` | string | — | Sensor entity for commute to work (minutes) |
-| `entity_to_home` | string | — | Sensor entity for commute to home (minutes) |
+| `routes` | list | **required** | Array of route objects (see below) |
 | `name` | string | `Dojazdy` / `Commute` | Card title |
 | `show_animations` | boolean | `true` | Enable CSS animations |
-| `show_traffic_indicator` | boolean | `true` | Show traffic light |
+| `show_road` | boolean | `true` | Show animated road at bottom |
+| `show_traffic_light` | boolean | `true` | Show traffic status indicators |
 | `optimal_threshold` | number | `25` | Max minutes for "optimal" (green) |
 | `warning_threshold` | number | `45` | Max minutes for "warning" (yellow) |
 | `danger_threshold` | number | `60` | Max minutes for "danger" (red) |
+
+**Route object:**
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `entity` | string | yes | Sensor entity ID (must return minutes) |
+| `name` | string | no | Display name for the route |
+| `icon` | string | no | Icon: `work`, `home`, `car`, `school`, `store`, `gym`, `map` |
+
+> **Migration from v1.x:** The old `entity_to_work` / `entity_to_home` format is automatically converted to `routes[]` on first load.
 
 ## Sensors Setup
 
@@ -140,13 +160,10 @@ sensor:
 
 The card includes several animated elements:
 
-1. **Road** — Yellow dashed line moving to simulate driving
-2. **Cars** — Colored cars driving across the screen (speed depends on traffic level)
-3. **Clouds** — Floating clouds (visible during day/morning/evening)
-4. **Stars** — Twinkling stars (visible at night)
-5. **Traffic Light** — Pulses when active
-6. **Danger Time** — Pulses when commute exceeds danger threshold
-7. **Shine Effect** — Subtle shine animation on route cards
+1. **Accent bar** — Subtle 4px gradient at top, changes color based on time of day
+2. **Road** — Yellow dashed line moving to simulate driving (optional)
+3. **Car** — Single subtle car driving across (18s cycle, 60% opacity)
+4. **Traffic bars** — 3px progress bar under each route, colored by traffic status
 
 ## Theming
 
@@ -154,12 +171,13 @@ Override card appearance with CSS custom properties:
 
 ```yaml
 type: custom:animated-commute-card
-entity_to_work: sensor.do_pracy
+routes:
+  - entity: sensor.do_pracy
+    name: Do pracy
+    icon: work
 card_mod:
   style: |
     :host {
-      --acc-time-size: 52px;
-      --acc-radius: 20px;
       --acc-optimal: #22c55e;
       --acc-warning: #eab308;
       --acc-danger: #dc2626;
@@ -170,20 +188,13 @@ Available CSS variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `--acc-bg-morning` | gradient | Morning background |
-| `--acc-bg-day` | gradient | Day background |
-| `--acc-bg-evening` | gradient | Evening background |
-| `--acc-bg-night` | gradient | Night background |
-| `--acc-text-primary` | `#ffffff` | Primary text color |
-| `--acc-text-secondary` | `rgba(255,255,255,0.8)` | Secondary text color |
-| `--acc-card-bg` | `rgba(255,255,255,0.1)` | Route card background |
 | `--acc-optimal` | `#10b981` | Optimal traffic color |
 | `--acc-warning` | `#f59e0b` | Warning traffic color |
 | `--acc-danger` | `#ef4444` | Danger traffic color |
-| `--acc-radius` | `16px` | Card border radius |
-| `--acc-time-size` | `48px` | Time value font size |
-| `--acc-name-size` | `14px` | Card name font size |
-| `--acc-label-size` | `13px` | Route label font size |
+| `--acc-accent-morning` | `linear-gradient(...)` | Morning accent bar gradient |
+| `--acc-accent-day` | `linear-gradient(...)` | Day accent bar gradient |
+| `--acc-accent-evening` | `linear-gradient(...)` | Evening accent bar gradient |
+| `--acc-accent-night` | `linear-gradient(...)` | Night accent bar gradient |
 
 ## Languages
 
@@ -199,11 +210,11 @@ Want to add your language? PRs welcome! See the `I18N` object in the source.
 
 **Card not showing:**
 * Clear browser cache: `Ctrl+Shift+R`
-* If using manual install, add version suffix: `/local/animated-commute-card.js?v=2`
+* If using manual install, add version suffix: `/local/animated-commute-card.js?v=3`
 
-**Animations not playing:**
-* Check `show_animations: true` in config
-* Verify browser supports CSS animations
+**Migration from v1.x/v2.x:**
+* The old `entity_to_work` / `entity_to_home` format is automatically converted to `routes[]` on first load
+* If you experience issues, manually update your configuration to use the new `routes[]` array format
 
 **Wrong time of day:**
 * Make sure `sun.sun` entity exists
@@ -225,3 +236,5 @@ Part of the Animated Cards collection:
 - [Animated Weather Card](https://github.com/smalarz/animated-weather-card)
 - [Animated Graph Card](https://github.com/smalarz/animated-graph-card)
 - [Animated Plant Card](https://github.com/smalarz/animated-plant-card)
+- [Animated Gauge Card](https://github.com/smalarz/animated-gauge-card)
+- [Animated Pie Card](https://github.com/smalarz/animated-pie-card)
