@@ -8,7 +8,7 @@ A clean, modern commute card for Home Assistant — part of the Animated Cards f
 
 ## Preview
 
-> Screenshots coming soon — the card now uses a clean HA-native design with accent bar, progress bars, and theme integration.
+![](screenshots/screenshot-commute.png)
 
 ## Features
 
