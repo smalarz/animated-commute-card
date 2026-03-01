@@ -16,6 +16,15 @@
 type: custom:animated-commute-card
 entity_to_work: sensor.do_pracy
 entity_to_home: sensor.z_pracy_do_domu
+routes:
+  - entity: sensor.do_pracy
+    name: Do pracy
+    icon: work
+    map_url: "https://maps.app.goo.gl/h4t5vq4gEycNbSCU9"
+  - entity: sensor.z_pracy_do_domu
+    name: Do domu
+    icon: home
+    map_url: "https://maps.app.goo.gl/AVtKpzMuA6YZ4igB7"
 
 # ============================================
 # PEŁNA KONFIGURACJA
@@ -69,3 +78,4 @@ entity_to_home: sensor.z_pracy_do_domu
 # ✅ Internacjonalizacja (PL/EN/DE)
 # ✅ Visual Editor w HA
 # ✅ HACS compatible
+# ✅ Klikalne trasy – otwieranie mapy (Google Maps, Waze, itp.) po kliknięciu
