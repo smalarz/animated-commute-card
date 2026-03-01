@@ -7,7 +7,7 @@
  * @license MIT
  */
 
-const CARD_VERSION = '3.0.0';
+const CARD_VERSION = '3.1.0';
 
 // Internationalization
 const I18N = {
@@ -29,6 +29,7 @@ const I18N = {
       route_entity: 'Sensor (czas w minutach)',
       route_name: 'Nazwa trasy',
       route_icon: 'Ikona',
+      route_map_url: 'URL mapy (Google Maps, Waze, itp.)',
       remove: 'Usuń'
     }
   },
@@ -50,6 +51,7 @@ const I18N = {
       route_entity: 'Sensor (time in minutes)',
       route_name: 'Route name',
       route_icon: 'Icon',
+      route_map_url: 'Map URL (Google Maps, Waze, etc.)',
       remove: 'Remove'
     }
   },
@@ -71,6 +73,7 @@ const I18N = {
       route_entity: 'Sensor (Zeit in Minuten)',
       route_name: 'Routenname',
       route_icon: 'Icon',
+      route_map_url: 'Karten-URL (Google Maps, Waze, usw.)',
       remove: 'Entfernen'
     }
   }
@@ -351,6 +354,25 @@ const STYLES = `
   .acc-container.no-anim .acc-car-anim {
     display: none;
   }
+
+  .acc-route--clickable {
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .acc-route--clickable:hover {
+    border-color: var(--primary-color, #667eea);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.18);
+  }
+
+  .acc-route-map-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--secondary-text-color);
+    opacity: 0.5;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
 `;
 
 class AnimatedCommuteCard extends HTMLElement {
@@ -375,8 +397,8 @@ class AnimatedCommuteCard extends HTMLElement {
       danger_threshold: 60,
       optimal_threshold: 25,
       routes: [
-        { entity: '', name: 'Do pracy', icon: 'work' },
-        { entity: '', name: 'Do domu', icon: 'home' }
+        { entity: '', name: 'Do pracy', icon: 'work', map_url: '' },
+        { entity: '', name: 'Do domu', icon: 'home', map_url: '' }
       ]
     };
   }
@@ -515,12 +537,16 @@ class AnimatedCommuteCard extends HTMLElement {
       const status = isValid ? getTrafficStatus(parseInt(time), this._config, lang) : null;
       const showWarning = isValid && parseInt(time) > 59;
       const timeClass = getTimeClass(time);
+      const mapUrl = route.map_url || '';
+      const clickableClass = mapUrl ? ' acc-route--clickable' : '';
+      const dataMapUrl = mapUrl ? ` data-map-url="${mapUrl}"` : '';
 
       routesHtml += `
-        <div class="acc-route">
+        <div class="acc-route${clickableClass}"${dataMapUrl}>
           <div class="acc-route-header">
             <div class="acc-route-icon">${this._getIcon(route.icon)}</div>
             <div class="acc-route-label">${route.name || route.entity}</div>
+            ${mapUrl ? `<div class="acc-route-map-icon">${ICONS.map}</div>` : ''}
           </div>
           ${isValid ? `
             <div class="acc-route-time">
@@ -567,6 +593,13 @@ class AnimatedCommuteCard extends HTMLElement {
         </div>
       </ha-card>
     `;
+
+    this.shadowRoot.querySelectorAll('.acc-route--clickable').forEach(el => {
+      el.addEventListener('click', () => {
+        const url = el.dataset.mapUrl;
+        if (url) window.open(url, '_blank', 'noopener');
+      });
+    });
   }
 
   getCardSize() {
@@ -839,6 +872,10 @@ class AnimatedCommuteCardEditor extends HTMLElement {
               <option value="map" ${route.icon === 'map' ? 'selected' : ''}>🗺️ Inne</option>
             </select>
           </div>
+          <div class="acc-route-field">
+            <label>${lang.editor.route_map_url}</label>
+            <input type="url" class="route-map-url" data-idx="${i}" value="${route.map_url || ''}" placeholder="https://maps.app.goo.gl/...">
+          </div>
         </div>
       </div>
     `).join('');
@@ -871,6 +908,13 @@ class AnimatedCommuteCardEditor extends HTMLElement {
       el.addEventListener('change', (e) => {
         const idx = parseInt(e.target.dataset.idx);
         this._updateRoute(idx, 'icon', e.target.value);
+      });
+    });
+
+    this.shadowRoot.querySelectorAll('.route-map-url').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        this._updateRoute(idx, 'map_url', e.target.value);
       });
     });
 
